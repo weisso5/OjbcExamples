@@ -1,0 +1,83 @@
+//
+//  UIPickerView+MWBlocks_Example
+//
+//
+//  Created by Michael Weissman on 3/27/13.
+//  Copyright (c) 2013 Michael Weissman. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+pseudo example usage of UIPickerView+MWBlocks:
+
+properties:
+
+@property (nonatomic, strong) IBOutlet UITextField *tfBDayMM;
+@property (nonatomic, strong) IBOutlet UITextField *tfBDayDD;
+@property (nonatomic, strong) IBOutlet UITextField *tfBDayYY;
+
+@property (nonatomic, strong)UIPickerView *yearPicker;
+@property (nonatomic, strong)UIPickerView *monthPicker;
+@property (nonatomic, strong)UIPickerView *dayPicker;
+
+
+implementation:
+
+	*dateUtil is a helper class that generates days, months, and years*
+
+	//if you are curious about the keyword http://stackoverflow.com/questions/7080927/what-does-the-block-keyword-mean
+	__block typeof(UITextField) *year = self.tfBDayYY;
+
+	//setup the year picker
+    self.yearPicker = [UIPickerView pickerFromDataSource:self.dateUtil.yearArray onSelection:^(id selectedValue) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            year.text = [NSString stringWithFormat:@"%@",selectedValue];
+        });
+    }];
+
+    [self.yearPicker selectRow:75 inComponent:0 animated:NO]; //not required, I didn't want the year picker to start at 1902
+
+    __block typeof(UITextField) *dayField = self.tfBDayDD;
+    __block typeof(AIDateUtility) *dateUtil = self.dateUtil;
+    __block typeof(UITextField) *monField = self.tfBDayMM;
+
+    //setup the month picker and then dynamically setup the days based on the selected month
+    self.monthPicker = [UIPickerView pickerFromDataSource:self.dateUtil.monthArray onSelection:^(id selectedValue) {
+        NSNumber *mon = selectedValue;
+        monField.text = [NSString stringWithFormat:@"%@",mon];
+        __block typeof(NSArray) *days = [dateUtil daysForMonth:mon.intValue];
+        self.dayPicker = [UIPickerView pickerFromDataSource:days onSelection:^(id selectedValue) {
+            dayField.text = [NSString stringWithFormat:@"%@",selectedValue];
+        }];
+    }];
+
+
+use as the keyboard
+
+-(void)textFieldDidBeginEditing:(UITextField *)textField
+{
+    if ([textField isEqual:self.tfBDayDD]) {
+        textField.inputView = self.dayPicker;
+    } else if ([textField isEqual:self.tfBDayMM])
+    {
+        textField.inputView = self.monthPicker;
+    } else if ([textField isEqual:self.tfBDayYY])
+    {
+        textField.inputView = self.yearPicker;
+    }
+}
