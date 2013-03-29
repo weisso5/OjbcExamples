@@ -1,7 +1,7 @@
 OjbcExamples
 ============
 
-Various Objc Examples that I created and found useful, feel free to use.
+Various Objc Examples that I created and found useful, feel free to use. I'll continue to add more.
 
 
 
